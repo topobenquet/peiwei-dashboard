@@ -46,7 +46,7 @@ jobs:
         run: python fetch_data.py
 
       - name: Upload dashboard files
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: dashboard-data
           path: data/
