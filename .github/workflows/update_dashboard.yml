@@ -27,10 +27,13 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Set up Google Sheets credentials
+          - name: Set up Google Sheets credentials
+        env:
+          CREDS: ${{ secrets.GOOGLE_SHEETS_CREDENTIALS }}
         run: |
           mkdir -p ~/.config/gspread
-           echo "${{ secrets.GOOGLE_SHEETS_CREDENTIALS }}" > credentials.json
+          echo "$CREDS" > credentials.json
+
       - name: Run data fetch script
         env:
           META_APP_ID: ${{ secrets.META_APP_ID }}
