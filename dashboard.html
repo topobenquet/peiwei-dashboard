@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pei Wei - Ads Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #E63946 0%, #c41235 100%);
+            color: white;
+            padding: 30px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo {
+            width: 50px;
+            height: 50px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #E63946;
+            font-size: 24px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .header-right {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .section {
+            background: white;
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #333;
+            border-bottom: 3px solid #E63946;
+            padding-bottom: 10px;
+        }
+
+        /* Pacing Section */
+        .pacing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .pacing-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            background: #fafafa;
+        }
+
+        .pacing-card h3 {
+            font-size: 16px;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .pacing-metrics {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        .metric-row {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .metric-label {
+            color: #666;
+        }
+
+        .metric-value {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 24px;
+            background: #e0e0e0;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 8px;
+            color: white;
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        .status-ahead {
+            background: linear-gradient(90deg, #ff9500, #ffb143);
+        }
+
+        .status-onpace {
+            background: linear-gradient(90deg, #2ecc71, #27ae60);
+        }
+
+        .status-behind {
+            background: linear-gradient(90deg, #e74c3c, #c0392b);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        .badge-ahead {
+            background: #fff3e0;
+            color: #ff9500;
+        }
+
+        .badge-onpace {
+            background: #e8f5e9;
+            color: #2ecc71;
+        }
+
+        .badge-behind {
+            background: #ffebee;
+            color: #e74c3c;
+        }
+
+        /* Performance Section */
+        .performance-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        table th {
+            background: #f5f5f5;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 2px solid #E63946;
+        }
+
+        table td {
+            padding: 12px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        table tr:hover {
+            background: #f9f9f9;
+        }
+
+        .metric-good {
+            color: #2ecc71;
+            font-weight: 600;
+        }
+
+        .metric-warning {
+            color: #ff9500;
+            font-weight: 600;
+        }
+
+        .metric-bad {
+            color: #e74c3c;
+            font-weight: 600;
+        }
+
+        /* Charts Section */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 25px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+
+        /* Top Campaigns */
+        .campaigns-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .campaign-card {
+            background: #fafafa;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .campaign-name {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .campaign-metric {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            font-size: 13px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .campaign-metric:last-child {
+            border-bottom: none;
+        }
+
+        .campaign-label {
+            color: #666;
+        }
+
+        .campaign-value {
+            font-weight: 600;
+            color: #333;
+        }
+
+        /* Alert */
+        .alert {
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        .alert-warning {
+            background: #fff3e0;
+            border-left: 4px solid #ff9500;
+            color: #e65100;
+        }
+
+        .alert-error {
+            background: #ffebee;
+            border-left: 4px solid #e74c3c;
+            color: #c62828;
+        }
+
+        .alert-success {
+            background: #e8f5e9;
+            border-left: 4px solid #2ecc71;
+            color: #1b5e20;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #999;
+            font-size: 12px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .pacing-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .campaigns-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+                gap: 15px;
+            }
+
+            .header h1 {
+                font-size: 22px;
+            }
+
+            table {
+                font-size: 12px;
+            }
+
+            table th, table td {
+                padding: 8px;
+            }
+        }
+
+        .error-message {
+            background: #ffebee;
+            border: 1px solid #ef5350;
+            border-radius: 6px;
+            padding: 15px;
+            color: #c62828;
+            margin-bottom: 20px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #E63946;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="header-left">
+                <div class="logo">🐉</div>
+                <h1>Pei Wei Ads Dashboard</h1>
+            </div>
+            <div class="header-right">
+                <div>Last Updated: <strong id="last-updated">Loading...</strong></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div id="loading" class="loading" style="display: none;">
+            <div class="spinner"></div>
+            <p>Loading dashboard data...</p>
+        </div>
+
+        <div id="content" style="display: none;">
+            <!-- Pacing Section -->
+            <div class="section">
+                <h2 class="section-title">June Pacing Status</h2>
+                <div class="pacing-grid" id="pacing-section">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Performance Section -->
+            <div class="section">
+                <h2 class="section-title">Performance Metrics</h2>
+                <div class="performance-grid">
+                    <div>
+                        <h3 style="margin-bottom: 15px; font-size: 16px;">Previous Day</h3>
+                        <div class="table-wrapper">
+                            <table id="today-table">
+                                <!-- Populated by JavaScript -->
+                            </table>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 style="margin-bottom: 15px; font-size: 16px;">Month-to-Date (MTD)</h3>
+                        <div class="table-wrapper">
+                            <table id="mtd-table">
+                                <!-- Populated by JavaScript -->
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="section">
+                <h2 class="section-title">30-Day Trends</h2>
+                <div class="charts-grid">
+                    <div>
+                        <h3 style="margin-bottom: 15px; font-size: 16px;">Daily Spend</h3>
+                        <div class="chart-container">
+                            <canvas id="spend-chart"></canvas>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 style="margin-bottom: 15px; font-size: 16px;">Daily CPA</h3>
+                        <div class="chart-container">
+                            <canvas id="cpa-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Campaigns Section -->
+            <div class="section">
+                <h2 class="section-title">Top Campaigns by Spend</h2>
+                <div id="top-campaigns">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Pei Wei Asian Kitchen - Automated Ads Performance Dashboard</p>
+    </div>
+
+    <script>
+        const BUDGET_CONFIG = {
+            'Google Ads': 43800,
+            'Meta Ads': 19300,
+            'TikTok': 1900,
+        };
+
+        const COLORS = {
+            'Google Ads': '#4285F4',
+            'Meta Ads': '#1877F2',
+            'TikTok': '#000000',
+        };
+
+        let dashboardData = null;
+        let spendChart = null;
+        let cpaChart = null;
+
+        // Load and parse dashboard data
+        async function loadDashboardData() {
+            try {
+                document.getElementById('loading').style.display = 'block';
+                document.getElementById('content').style.display = 'none';
+
+                // Try to load from JSON file
+                const response = await fetch('./data/dashboard_data.json');
+                if (!response.ok) {
+                    throw new Error('Failed to load dashboard data');
+                }
+
+                dashboardData = await response.json();
+                renderDashboard();
+
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('content').style.display = 'block';
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+                document.getElementById('loading').innerHTML = `
+                    <div class="error-message">
+                        <strong>Error Loading Dashboard</strong><br>
+                        Could not load dashboard data. Make sure fetch_data.py has been run recently.
+                    </div>
+                `;
+            }
+        }
+
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 2,
+            }).format(value);
+        }
+
+        function formatNumber(value) {
+            return new Intl.NumberFormat('en-US', {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 2,
+            }).format(value);
+        }
+
+        function getStatusClass(status) {
+            switch (status) {
+                case 'AHEAD': return 'status-ahead';
+                case 'ON_PACE': return 'status-onpace';
+                case 'BEHIND': return 'status-behind';
+                default: return '';
+            }
+        }
+
+        function getBadgeClass(status) {
+            switch (status) {
+                case 'AHEAD': return 'badge-ahead';
+                case 'ON_PACE': return 'badge-onpace';
+                case 'BEHIND': return 'badge-behind';
+                default: return '';
+            }
+        }
+
+        function renderPacing() {
+            const section = document.getElementById('pacing-section');
+            section.innerHTML = '';
+
+            Object.entries(dashboardData.pacing).forEach(([platform, data]) => {
+                const percentage = Math.min(100, (data.spend_mtd / data.budget) * 100);
+                const statusClass = getStatusClass(data.status);
+                const badgeClass = getBadgeClass(data.status);
+
+                const card = document.createElement('div');
+                card.className = 'pacing-card';
+                card.innerHTML = `
+                    <h3>${platform}</h3>
+                    <div class="pacing-metrics">
+                        <div class="metric-row">
+                            <span class="metric-label">Budget:</span>
+                            <span class="metric-value">${formatCurrency(data.budget)}</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">Spent (MTD):</span>
+                            <span class="metric-value">${formatCurrency(data.spend_mtd)}</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">% Spent:</span>
+                            <span class="metric-value">${percentage.toFixed(1)}%</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">Variance:</span>
+                            <span class="metric-value">${data.percentage_diff > 0 ? '+' : ''}${data.percentage_diff.toFixed(1)}%</span>
+                        </div>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill ${statusClass}" style="width: ${percentage}%">
+                            ${percentage.toFixed(0)}%
+                        </div>
+                    </div>
+                    <span class="status-badge ${badgeClass}">${data.status.replace('_', ' ')}</span>
+                `;
+                section.appendChild(card);
+            });
+        }
+
+        function renderPerformanceTable(tableId, metricsData) {
+            const table = document.getElementById(tableId);
+            table.innerHTML = '';
+
+            const headers = ['Platform', 'Spend', 'Impressions', 'Clicks', 'CTR', 'Conversions', 'CPA', 'ROAS'];
+            const headerRow = document.createElement('tr');
+            headers.forEach(h => {
+                const th = document.createElement('th');
+                th.textContent = h;
+                headerRow.appendChild(th);
+            });
+            table.appendChild(headerRow);
+
+            Object.entries(metricsData).forEach(([platform, metrics]) => {
+                const row = document.createElement('tr');
+
+                const cells = [
+                    platform,
+                    formatCurrency(metrics.spend),
+                    formatNumber(metrics.impressions),
+                    formatNumber(metrics.clicks),
+                    `${metrics.ctr.toFixed(2)}%`,
+                    formatNumber(metrics.conversions),
+                    formatCurrency(metrics.cpa),
+                    metrics.roas.toFixed(2),
+                ];
+
+                cells.forEach(cell => {
+                    const td = document.createElement('td');
+                    td.textContent = cell;
+                    row.appendChild(td);
+                });
+
+                table.appendChild(row);
+            });
+
+            // Add totals row
+            const totalRow = document.createElement('tr');
+            totalRow.style.fontWeight = '600';
+            totalRow.style.backgroundColor = '#f5f5f5';
+
+            const totalSpend = Object.values(metricsData).reduce((sum, m) => sum + m.spend, 0);
+            const totalImpressions = Object.values(metricsData).reduce((sum, m) => sum + m.impressions, 0);
+            const totalClicks = Object.values(metricsData).reduce((sum, m) => sum + m.clicks, 0);
+            const totalConversions = Object.values(metricsData).reduce((sum, m) => sum + m.conversions, 0);
+            const avgCTR = (totalClicks / totalImpressions * 100) || 0;
+            const avgCPA = (totalSpend / totalConversions) || 0;
+            const totalValue = Object.values(metricsData).reduce((sum, m) => sum + (m.conversion_value || 0), 0);
+            const avgROAS = (totalValue / totalSpend) || 0;
+
+            const totalCells = [
+                'TOTAL',
+                formatCurrency(totalSpend),
+                formatNumber(totalImpressions),
+                formatNumber(totalClicks),
+                `${avgCTR.toFixed(2)}%`,
+                formatNumber(totalConversions),
+                formatCurrency(avgCPA),
+                avgROAS.toFixed(2),
+            ];
+
+            totalCells.forEach(cell => {
+                const td = document.createElement('td');
+                td.textContent = cell;
+                totalRow.appendChild(td);
+            });
+
+            table.appendChild(totalRow);
+        }
+
+        function renderCharts() {
+            const spendCtx = document.getElementById('spend-chart').getContext('2d');
+            const cpaCtx = document.getElementById('cpa-chart').getContext('2d');
+
+            const datasets = [];
+            const cpaDatasets = [];
+
+            Object.entries(dashboardData.daily_trends).forEach(([platform, data]) => {
+                if (data.dates && data.dates.length > 0) {
+                    datasets.push({
+                        label: platform,
+                        data: data.spend,
+                        borderColor: COLORS[platform] || '#999',
+                        backgroundColor: COLORS[platform] + '20' || '#99920',
+                        tension: 0.4,
+                        fill: false,
+                        borderWidth: 2,
+                    });
+
+                    cpaDatasets.push({
+                        label: platform,
+                        data: data.cpa.map(cpa => cpa || 0),
+                        borderColor: COLORS[platform] || '#999',
+                        backgroundColor: COLORS[platform] + '20' || '#99920',
+                        tension: 0.4,
+                        fill: false,
+                        borderWidth: 2,
+                    });
+                }
+            });
+
+            const labels = dashboardData.daily_trends[Object.keys(dashboardData.daily_trends)[0]]?.dates || [];
+
+            if (spendChart) spendChart.destroy();
+            spendChart = new Chart(spendCtx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: datasets,
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                        },
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function (value) {
+                                    return '$' + value.toLocaleString();
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            if (cpaChart) cpaChart.destroy();
+            cpaChart = new Chart(cpaCtx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: cpaDatasets,
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                        },
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function (value) {
+                                    return '$' + value.toFixed(2);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderTopCampaigns() {
+            const section = document.getElementById('top-campaigns');
+            section.innerHTML = '';
+
+            const container = document.createElement('div');
+            container.className = 'campaigns-grid';
+
+            Object.entries(dashboardData.top_campaigns).forEach(([platform, campaigns]) => {
+                const platformSection = document.createElement('div');
+                platformSection.innerHTML = `<h3 style="margin-bottom: 15px; font-size: 14px; font-weight: 600; color: #333;">${platform}</h3>`;
+
+                campaigns.forEach(campaign => {
+                    const card = document.createElement('div');
+                    card.className = 'campaign-card';
+                    card.innerHTML = `
+                        <div class="campaign-name" title="${campaign.name}">${campaign.name || 'Unknown Campaign'}</div>
+                        <div class="campaign-metric">
+                            <span class="campaign-label">Spend:</span>
+                            <span class="campaign-value">${formatCurrency(campaign.spend_usd)}</span>
+                        </div>
+                        <div class="campaign-metric">
+                            <span class="campaign-label">Impressions:</span>
+                            <span class="campaign-value">${formatNumber(campaign.impressions)}</span>
+                        </div>
+                        <div class="campaign-metric">
+                            <span class="campaign-label">Clicks:</span>
+                            <span class="campaign-value">${formatNumber(campaign.clicks)}</span>
+                        </div>
+                        <div class="campaign-metric">
+                            <span class="campaign-label">Conversions:</span>
+                            <span class="campaign-value">${formatNumber(campaign.conversions)}</span>
+                        </div>
+                        <div class="campaign-metric">
+                            <span class="campaign-label">CPA:</span>
+                            <span class="campaign-value">${formatCurrency(campaign.cpa)}</span>
+                        </div>
+                        <div class="campaign-metric">
+                            <span class="campaign-label">ROAS:</span>
+                            <span class="campaign-value">${campaign.roas.toFixed(2)}</span>
+                        </div>
+                    `;
+                    platformSection.appendChild(card);
+                });
+
+                container.appendChild(platformSection);
+            });
+
+            section.appendChild(container);
+        }
+
+        function renderDashboard() {
+            // Update timestamp
+            const timestamp = new Date(dashboardData.timestamp);
+            document.getElementById('last-updated').textContent = timestamp.toLocaleString('en-US', {
+                timeZone: 'America/New_York',
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+            });
+
+            renderPacing();
+            renderPerformanceTable('today-table', dashboardData.today);
+            renderPerformanceTable('mtd-table', dashboardData.mtd);
+            renderCharts();
+            renderTopCampaigns();
+        }
+
+        // Initialize on page load
+        window.addEventListener('DOMContentLoaded', loadDashboardData);
+
+        // Reload data every 5 minutes
+        setInterval(loadDashboardData, 5 * 60 * 1000);
+    </script>
+</body>
+</html>
