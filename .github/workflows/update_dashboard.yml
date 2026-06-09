@@ -56,19 +56,11 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: python fetch_data.py
 
-      - name: Commit and push changes
+        - name: Commit and push changes
         run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
+          echo "Dashboard data generated successfully"
+          ls -la data/
 
-          # Check if there are changes to commit
-          if [ -n "$(git status --porcelain)" ]; then
-            git add data/dashboard_data.json data/historical_data.csv
-            git commit -m "Update dashboard data - $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-            git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git main
-          else
-            echo "No changes to commit"
-          fi
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
