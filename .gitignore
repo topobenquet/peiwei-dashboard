@@ -41,8 +41,8 @@ env/
 *~
 .DS_Store
 
-# Data files (except historical)
-data/*.json
+# Data files (except dashboard data)
+# data/*.json is now allowed - we want to track dashboard_data.json
 *.log
 
 # OS
