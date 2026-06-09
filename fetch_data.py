@@ -15,8 +15,6 @@ import pandas as pd
 import pytz
 from dotenv import load_dotenv
 from google.ads.googleads.client import GoogleAdsClient
-from facebook_business.api import FacebookAdsApi
-from facebook_business.objects import AdAccount, Campaign
 import requests
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
@@ -121,72 +119,76 @@ class MetaAdsDataFetcher:
     """Fetch data from Meta Ads API."""
 
     def __init__(self):
-        try:
-            access_token = os.getenv('META_ACCESS_TOKEN')
-            app_secret = os.getenv('META_APP_SECRET')
-            FacebookAdsApi.init(access_token=access_token)
-            self.ad_account_id = os.getenv('META_AD_ACCOUNT_ID', '242286109226006')
-            logger.info("Meta Ads client initialized")
-        except Exception as e:
-            logger.error(f"Failed to initialize Meta Ads client: {e}")
-            self.ad_account_id = None
+        self.access_token = os.getenv('META_ACCESS_TOKEN')
+        self.ad_account_id = os.getenv('META_AD_ACCOUNT_ID', '242286109226006')
+        self.base_url = 'https://graph.facebook.com/v18.0'
+        logger.info("Meta Ads client initialized")
 
     def fetch_campaigns(self) -> Dict:
         """Fetch campaign metrics from Meta Ads."""
-        if not self.ad_account_id:
-            logger.warning("Meta Ads account ID not available")
+        if not self.access_token or not self.ad_account_id:
+            logger.warning("Meta Ads credentials not available")
             return {}
 
         try:
-            ad_account = AdAccount(f'act_{self.ad_account_id}')
-            campaigns = ad_account.get_campaigns(fields=[
-                Campaign.Field.id,
-                Campaign.Field.name,
-                Campaign.Field.status,
-            ])
+            headers = {'Authorization': f'Bearer {self.access_token}'}
+
+            # Get campaigns
+            campaigns_url = f"{self.base_url}/act_{self.ad_account_id}/campaigns"
+            params = {
+                'fields': 'id,name,status',
+                'limit': 100,
+                'access_token': self.access_token,
+            }
+
+            response = requests.get(campaigns_url, params=params, timeout=10)
+            response.raise_for_status()
+            campaigns = response.json().get('data', [])
 
             results = {}
+
             for campaign in campaigns:
-                insights = campaign.get_insights(
-                    fields=[
-                        'spend',
-                        'impressions',
-                        'clicks',
-                        'actions',
-                        'action_values',
-                        'action_type',
-                    ],
-                    date_preset='last_30d'
-                )
+                campaign_id = campaign['id']
+                campaign_name = campaign['name']
 
-                spend = sum(float(i.get('spend', 0)) for i in insights)
-                impressions = sum(int(i.get('impressions', 0)) for i in insights)
-                clicks = sum(int(i.get('clicks', 0)) for i in insights)
-                conversions = sum(
-                    int(a.get('value', 0))
-                    for i in insights
-                    for a in i.get('actions', [])
-                    if a.get('action_type') == 'purchase'
-                )
-                conversion_value = sum(
-                    float(v.get('value', 0))
-                    for i in insights
-                    for v in i.get('action_values', [])
-                    if v.get('action_type') == 'purchase'
-                )
-
-                results[campaign[Campaign.Field.name]] = {
-                    'platform': 'Meta Ads',
-                    'campaign_id': campaign[Campaign.Field.id],
-                    'impressions': impressions,
-                    'clicks': clicks,
-                    'spend_usd': spend,
-                    'conversions': conversions,
-                    'conversion_value': conversion_value,
-                    'ctr': (clicks / impressions * 100) if impressions > 0 else 0,
-                    'cpa': (spend / conversions) if conversions > 0 else 0,
-                    'roas': (conversion_value / spend) if spend > 0 else 0,
+                # Get insights for campaign
+                insights_url = f"{self.base_url}/{campaign_id}/insights"
+                insights_params = {
+                    'fields': 'spend,impressions,clicks,actions,action_values',
+                    'time_range': '{"since":"2026-06-01","until":"2026-06-09"}',
+                    'access_token': self.access_token,
                 }
+
+                insights_response = requests.get(insights_url, params=insights_params, timeout=10)
+                if insights_response.status_code == 200:
+                    insights = insights_response.json().get('data', [])
+
+                    spend = sum(float(i.get('spend', 0)) for i in insights)
+                    impressions = sum(int(i.get('impressions', 0)) for i in insights)
+                    clicks = sum(int(i.get('clicks', 0)) for i in insights)
+                    conversions = 0
+                    conversion_value = 0
+
+                    for insight in insights:
+                        for action in insight.get('actions', []):
+                            if action.get('action_type') == 'purchase':
+                                conversions += int(action.get('value', 0))
+                        for value in insight.get('action_values', []):
+                            if value.get('action_type') == 'purchase':
+                                conversion_value += float(value.get('value', 0))
+
+                    results[campaign_name] = {
+                        'platform': 'Meta Ads',
+                        'campaign_id': campaign_id,
+                        'impressions': impressions,
+                        'clicks': clicks,
+                        'spend_usd': spend,
+                        'conversions': conversions,
+                        'conversion_value': conversion_value,
+                        'ctr': (clicks / impressions * 100) if impressions > 0 else 0,
+                        'cpa': (spend / conversions) if conversions > 0 else 0,
+                        'roas': (conversion_value / spend) if spend > 0 else 0,
+                    }
 
             logger.info(f"Fetched {len(results)} Meta Ads campaigns")
             return results
