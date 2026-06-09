@@ -45,9 +45,14 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: python fetch_data.py
 
-      - name: Upload dashboard files
-        uses: actions/upload-artifact@v4
-        with:
-          name: dashboard-data
-          path: data/
+        - name: Commit dashboard data
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          if [ -f data/dashboard_data.json ]; then
+            git add data/dashboard_data.json data/historical_data.csv
+            git commit -m "Update dashboard data - $(date -u +'%Y-%m-%d %H:%M:%S UTC')" || true
+            git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git HEAD:main || true
+          fi
+
 
