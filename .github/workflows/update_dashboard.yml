@@ -31,7 +31,6 @@ jobs:
         run: |
           mkdir -p ~/.config/gspread
           echo '${{ secrets.GOOGLE_SHEETS_CREDENTIALS }}' > credentials.json
-
       - name: Run data fetch script
         env:
           META_APP_ID: ${{ secrets.META_APP_ID }}
